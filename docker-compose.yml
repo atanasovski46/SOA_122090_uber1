@@ -1,0 +1,169 @@
+version: '2'
+services:
+  my-traefik:
+    image: traefik
+    command: -c /dev/null --web --docker --docker.domain=docker.localhost
+    labels:
+      - "traefik.enable=false"
+    ports:
+      - "21015:80"
+      - "21016:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  my-eureka:
+    image: my_dockerhub_user/task7-eureka
+    labels:
+      - "traefik.port=8761"
+      - "traefik.backend=my-eureka"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-eureka"
+    expose:
+      - "8761"
+    ports:
+      - "21017:8761"
+
+  my-zuul:
+    image: my_dockerhub_user/task7-zuul
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-zuul"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-zuul"
+
+  my-gateway:
+    image: my_dockerhub_user/task7-gateway
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-gateway"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-gateway"
+
+  my-mysql:
+    image: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: my-secret-pw
+      MYSQL_USER: dbuser
+      MYSQL_PASSWORD: dbp4ss
+      MYSQL_DATABASE: demo
+    volumes:
+      - my-datavolume:/var/lib/mysql
+    labels:
+      - "traefik.enable=false"
+      
+
+  my-login:
+    image: my_dockerhub_user/task7-login
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-login"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-login"
+    links:
+      - my-mysql
+      - my-eureka
+ #     - my-zuul
+ #     - my-gateway
+    depends_on:
+      - my-mysql
+      - my-traefik
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+
+  my-app1:
+    image: my_dockerhub_user/task7-app1
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-app1"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-app1"
+    links:
+      - my-mysql
+      - my-eureka
+#      - my-zuul
+ #     - my-gateway
+    depends_on:
+      - my-mysql
+      - my-traefik
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+#      - my-login
+
+ # my-app2:
+ #   image: my_dockerhub_user/task7-app2
+ #   labels:
+ #     - "traefik.port=8080"
+ #     - "traefik.backend=my-app2"
+ #     - "traefik.frontend.rule=PathPrefixStrip:/my-app2"
+ #   links:
+#    - my-mysql
+#     - my-eureka
+#      - my-zuul
+#      - my-gateway
+#    depends_on:
+#      - my-mysql
+#      - my-traefik
+#      - my-eureka
+#      - my-zuul
+#      - my-gateway
+#      - my-login
+
+  my-uber_user:
+    image: my_dockerhub_user/task7-uber_user
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-uber"
+      - "traefik.frontend.rule=PathPrefixStrip:/my-user"
+    links:
+      - my-mysql
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+    depends_on:
+      - my-mysql
+      - my-traefik
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+#      - my-login
+
+  my-travelService:
+    image: my_dockerhub_user/task7-travel
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-travel"
+      - "traefik.frontend.rule=PathPrefixStrip:/travel"
+    links:
+      - my-mysql
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+    depends_on:
+      - my-mysql
+      - my-traefik
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+#      - my-login
+
+  my-feedback:
+    image: my_dockerhub_user/task7-feedback
+    labels:
+      - "traefik.port=8080"
+      - "traefik.backend=my-feedback"
+      - "traefik.frontend.rule=PathPrefixStrip:/feedback"
+    links:
+      - my-mysql
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+    depends_on:
+      - my-mysql
+      - my-traefik
+      - my-eureka
+#      - my-zuul
+#      - my-gateway
+#      - my-login
+
+
+
+
+volumes:
+  my-datavolume: {}
